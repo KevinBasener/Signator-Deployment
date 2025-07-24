@@ -1,0 +1,12 @@
+fastapi
+uvicorn[standard]
+supabase
+python-dotenv
+pandas
+numpy
+Pillow
+httpx
+asyncpg
+python-jose[cryptography]
+passlib[bcrypt]
+python-multipart
