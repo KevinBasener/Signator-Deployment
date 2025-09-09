@@ -167,10 +167,25 @@ async def add_event_with_images(
         for display_id, file in display_mapping.items():
             if file and file.filename:
                 # Process image and get its bytes
+                # 1. Open the uploaded image
                 img = Image.open(io.BytesIO(await file.read())).convert("RGB")
-                img.thumbnail((1200, 825), Image.LANCZOS)
+
+                # 2. Create a thumbnail that maintains aspect ratio
+                img.thumbnail(target_size, Image.LANCZOS)
+
+                # 3. Create a new, white background canvas
+                background = Image.new('RGB', target_size, (255, 255, 255))
+
+                # 4. Calculate the position to paste the thumbnail for centering
+                paste_x = (target_size[0] - img.width) // 2
+                paste_y = (target_size[1] - img.height) // 2
+
+                # 5. Paste the thumbnail onto the center of the background
+                background.paste(img, (paste_x, paste_y))
+
+                # 6. Save the final, centered image (the background)
                 img_bytes_io = io.BytesIO()
-                img.save(img_bytes_io, format="JPEG", quality=50)
+                background.save(img_bytes_io, format="JPEG", quality=50)
                 processed_image_bytes = img_bytes_io.getvalue()
 
                 # Insert image bytes directly into the database
