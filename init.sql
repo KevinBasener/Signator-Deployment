@@ -1,6 +1,6 @@
 -- Erstellt die Tabelle für allgemeine Geräteinformationen und Spannung
 CREATE TABLE public.battery_info (
-                                     id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+                                     id bigint NOT NULL,
                                      battery_voltage real NOT NULL,
                                      CONSTRAINT battery_info_pkey PRIMARY KEY (id)
 );

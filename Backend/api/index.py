@@ -2,6 +2,7 @@ import io
 import os
 import uuid
 from datetime import date
+import base64
 from typing import Optional
 
 import asyncpg
@@ -222,8 +223,13 @@ async def get_image_for_inkplate(display_id: str):
         bmp_bytes = bmp_io.getvalue()
         img.close()
 
-        # Send combined response: 36-byte ID string + raw BMP bytes
-        image_id_str = str(image_id).zfill(36)
-        combined_content = image_id_str.encode('utf-8') + bmp_bytes
+        base64_image_data = base64.b64encode(bmp_bytes).decode('utf-8')
 
-        return Response(content=combined_content, media_type="application/octet-stream")
+        # 3. Create a dictionary that matches the client's expected JSON structure
+        json_response = {
+            "imageId": str(image_id),
+            "imageData": base64_image_data
+        }
+
+        # 4. Return the dictionary. FastAPI automatically converts it to a JSON response.
+        return json_response
