@@ -171,14 +171,14 @@ async def add_event_with_images(
                 img = Image.open(io.BytesIO(await file.read())).convert("RGB")
 
                 # 2. Create a thumbnail that maintains aspect ratio
-                img.thumbnail(target_size, Image.LANCZOS)
+                img.thumbnail((1200, 825), Image.LANCZOS)
 
                 # 3. Create a new, white background canvas
                 background = Image.new('RGB', (1200, 825), (255, 255, 255))
 
                 # 4. Calculate the position to paste the thumbnail for centering
-                paste_x = (target_size[0] - img.width) // 2
-                paste_y = (target_size[1] - img.height) // 2
+                paste_x = (1200 - img.width) // 2
+                paste_y = (825 - img.height) // 2
 
                 # 5. Paste the thumbnail onto the center of the background
                 background.paste(img, (paste_x, paste_y))
