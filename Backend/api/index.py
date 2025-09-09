@@ -174,7 +174,7 @@ async def add_event_with_images(
                 img.thumbnail(target_size, Image.LANCZOS)
 
                 # 3. Create a new, white background canvas
-                background = Image.new('RGB', target_size, (255, 255, 255))
+                background = Image.new('RGB', (1200, 825), (255, 255, 255))
 
                 # 4. Calculate the position to paste the thumbnail for centering
                 paste_x = (target_size[0] - img.width) // 2
