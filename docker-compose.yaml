@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   db:
-    image: postgres:15-alpine
+    image: docker.io/postgres:15-alpine
     restart: always
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
@@ -36,9 +36,10 @@ services:
     restart: always
     ports:
       - "3000:3000"
-    env_file: .env
     depends_on:
       - backend
+    environment:
+      - NEXT_PUBLIC_SERVER_URL=http://10.10.1.13:8000
 
 volumes:
   postgres-data:
