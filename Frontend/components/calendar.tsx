@@ -33,6 +33,7 @@ export function Calendar({ selectedDate, onDaySelect }: CalendarProps) {
             const formattedStartDate = start.toLocaleDateString("sv-SE");
             const formattedEndDate = end.toLocaleDateString("sv-SE");
             const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/py/getEvents/${formattedStartDate}/${formattedEndDate}`);
+            console.log(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/py/getEvents/${formattedStartDate}/${formattedEndDate}`)
             const data = await response.json();
             console.log(data)
             const formattedEvents = data.map((event: any) => ({
