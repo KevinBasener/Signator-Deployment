@@ -26,7 +26,10 @@ services:
       - "8000:8000"
     volumes:
       - ./backend/api:/app/api # Für Live-Reload bei der Entwicklung
-    env_file: .env
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=your_strong_postgres_password
+      - POSTGRES_DB=signator
     depends_on:
       db:
         condition: service_healthy
