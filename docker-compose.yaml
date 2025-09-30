@@ -30,6 +30,7 @@ services:
       - POSTGRES_USER=admin
       - POSTGRES_PASSWORD=your_strong_postgres_password
       - POSTGRES_DB=signator
+      - POSTGRES_HOST=10.10.1.13
     depends_on:
       db:
         condition: service_healthy
