@@ -13,7 +13,7 @@ export function Header() {
             {/* Left Section: Logo + Title */}
             <div className="flex items-center space-x-4">
                 <img src="/logo.png" alt="Logo" className="h-8 w-8"/>
-                <h1 className="text-2xl font-bold">Uditorium</h1>
+                <h1 className="text-2xl font-bold">Inkplate</h1>
             </div>
 
             {/* Desktop Navigation (Hidden on Mobile) */}
