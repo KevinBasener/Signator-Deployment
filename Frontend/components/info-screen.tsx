@@ -3,6 +3,8 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useEffect, useState } from "react";
+import { Trash2 } from "lucide-react";
+import { deleteEvent } from "./booking-dialog";
 
 interface RoomStatus {
     number: string
@@ -21,12 +23,61 @@ export function InfoScreen({ rooms, selectedDate, onNewBooking }: InfoScreenProp
     const [roomImages, setRoomImages] = useState<{ [key: string]: string }>({})
     const [date, setDate] = useState<Date | null>(selectedDate)
     const [batteryData, setBatteryData] = useState<{ [roomId: string]: { percentage: number } }>({});
+    const [eventId, setEventId] = useState<number | null>(null);
+    const [eventTitle, setEventTitle] = useState<string>("");
 
     const selectedRoom = rooms[selectedRoomIndex]
+
+    const handleDeleteEvent = async () => {
+        if (!eventId) return;
+        if (!confirm("Möchten Sie dieses Event wirklich löschen?")) return;
+
+        try {
+            await deleteEvent(eventId);
+            window.location.reload();
+        } catch (error) {
+            alert("Fehler beim Löschen des Events.");
+        }
+    };
 
     useEffect(() => {
         setDate(selectedDate);
     }, [selectedDate]);
+
+    // Fetch event data for the selected date
+    useEffect(() => {
+        const fetchEventData = async () => {
+            if (!date) {
+                setEventId(null);
+                setEventTitle("");
+                return;
+            }
+
+            try {
+                const formattedDate = date.toISOString().split('T')[0];
+                const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/py/getEvents/${formattedDate}/${formattedDate}`);
+
+                if (!response.ok) {
+                    throw new Error("Failed to fetch events");
+                }
+
+                const events = await response.json();
+                if (events && events.length > 0) {
+                    setEventId(events[0].id);
+                    setEventTitle(events[0].title);
+                } else {
+                    setEventId(null);
+                    setEventTitle("");
+                }
+            } catch (error) {
+                console.error("Error fetching event data:", error);
+                setEventId(null);
+                setEventTitle("");
+            }
+        };
+
+        fetchEventData();
+    }, [date]);
 
     // This useEffect is now changed back to fetching and handling blobs
     useEffect(() => {
@@ -100,23 +151,26 @@ export function InfoScreen({ rooms, selectedDate, onNewBooking }: InfoScreenProp
             </h2>
 
             <div className="grid grid-cols-2 gap-2 mb-4">
-                {rooms.map((room, index) => (
-                    <Button
-                        key={room.number}
-                        variant={selectedRoomIndex === index ? "default" : "outline"}
-                        className="w-full"
-                        onClick={() => setSelectedRoomIndex(index)}
-                    >
-                        Raum {room.number}
-                    </Button>
-                ))}
+                {rooms.map((room, index) => {
+                    const shortNames = ["Sammel 1", "Sammel 2", "Solo 1", "Solo 2"];
+                    return (
+                        <Button
+                            key={room.number}
+                            variant={selectedRoomIndex === index ? "default" : "outline"}
+                            className="w-full"
+                            onClick={() => setSelectedRoomIndex(index)}
+                        >
+                            {shortNames[index]}
+                        </Button>
+                    );
+                })}
             </div>
 
             <div className="flex-grow">
                 {selectedRoom && (
                     <Card className="flex flex-col h-full">
                         <CardHeader className="flex flex-row justify-between items-center">
-                            <CardTitle>Raum {selectedRoom.number}</CardTitle>
+                            <CardTitle>{selectedRoom.name}</CardTitle>
                             {batteryData[selectedRoom.number] && (
                                 <div className="flex items-center gap-2">
                                     <span className="text-sm font-medium">{batteryData[selectedRoom.number].percentage}%</span>
@@ -140,16 +194,32 @@ export function InfoScreen({ rooms, selectedDate, onNewBooking }: InfoScreenProp
                             </div>
                             <div className="p-4 flex-grow">
                                 <p className="font-medium text-lg">{selectedRoom.name}</p>
-                                <p className="text-muted-foreground mt-2">
-                                    Details zum Raum {selectedRoom.number}.
-                                </p>
                             </div>
                         </CardContent>
                     </Card>
                 )}
             </div>
 
-            <div className="mt-6">
+            <div className="mt-6 space-y-2">
+                {eventId && (
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-2">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-sm text-gray-600">Aktuelles Event:</p>
+                                <p className="font-medium">{eventTitle}</p>
+                            </div>
+                            <Button
+                                onClick={handleDeleteEvent}
+                                variant="destructive"
+                                size="sm"
+                                className="flex items-center gap-2"
+                            >
+                                <Trash2 size={16} />
+                                Löschen
+                            </Button>
+                        </div>
+                    </div>
+                )}
                 <Button onClick={onNewBooking} className="w-full text-lg py-3">
                     Neue Buchung erstellen
                 </Button>

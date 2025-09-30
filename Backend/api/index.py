@@ -40,7 +40,7 @@ async def startup_event():
             user=os.getenv("POSTGRES_USER"),
             password=os.getenv("POSTGRES_PASSWORD"),
             database=os.getenv("POSTGRES_DB"),
-            host='db',
+            host=os.getenv("POSTGRES_HOST"),
             port=5432
         )
         print("Database connection pool created.")
@@ -145,6 +145,17 @@ async def get_events(start_date: date, end_date: date):
             start_date, end_date
         )
         return [{"id": r['id'], "date": r['date'], "title": r['title']} for r in records]
+
+@app.delete("/api/py/deleteEvent/{event_id}")
+async def delete_event(event_id: int):
+    async with DB_POOL.acquire() as conn, conn.transaction():
+        # First delete associated images
+        await conn.execute("DELETE FROM scheduled_images WHERE event_id = $1;", event_id)
+        # Then delete the event
+        result = await conn.execute("DELETE FROM booked_events WHERE id = $1;", event_id)
+        if result == "DELETE 0":
+            raise HTTPException(status_code=404, detail="Event not found")
+        return {"message": "Event deleted successfully", "event_id": event_id}
 
 @app.post("/api/py/addEventWithImages")
 async def add_event_with_images(

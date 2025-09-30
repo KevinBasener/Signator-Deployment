@@ -11,6 +11,7 @@ moment.locale("de");
 const localizer = momentLocalizer(moment);
 
 interface CalendarEvent {
+    id: number;
     title: string;
     start: Date;
     end: Date;
@@ -25,6 +26,7 @@ interface CalendarProps {
 export function Calendar({ selectedDate, onDaySelect }: CalendarProps) {
     const [events, setEvents] = useState<CalendarEvent[]>([]);
     const [view, setView] = useState<View>("month");
+    const [currentDate, setCurrentDate] = useState<Date>(new Date());
 
     const getEventStyle = () => ({ style: { backgroundColor: "#ff8033" } });
 
@@ -37,6 +39,7 @@ export function Calendar({ selectedDate, onDaySelect }: CalendarProps) {
             const data = await response.json();
             console.log(data)
             const formattedEvents = data.map((event: any) => ({
+                id: event.id,
                 title: event.title,
                 start: new Date(event.date),
                 end: new Date(event.date),
@@ -49,23 +52,24 @@ export function Calendar({ selectedDate, onDaySelect }: CalendarProps) {
     };
 
     useEffect(() => {
-        const now = new Date();
         let start: Date, end: Date;
 
         if (view === "month") {
-            start = new Date(now.getFullYear(), now.getMonth(), 1);
-            end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+            start = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+            end = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
         } else if (view === "week") {
-            const firstDayOfWeek = now.getDate() - now.getDay();
-            start = new Date(now.setDate(firstDayOfWeek));
-            end = new Date(now.setDate(firstDayOfWeek + 6));
+            const dayOfWeek = currentDate.getDay();
+            start = new Date(currentDate);
+            start.setDate(currentDate.getDate() - dayOfWeek);
+            end = new Date(start);
+            end.setDate(start.getDate() + 6);
         } else if (view === "day") {
-            start = selectedDate || now;
-            end = selectedDate || now;
+            start = selectedDate || currentDate;
+            end = selectedDate || currentDate;
         }
 
         fetchEvents(start, end);
-    }, [view, selectedDate]);
+    }, [view, selectedDate, currentDate]);
 
     return (
         <div className="h-full p-4">
@@ -76,6 +80,7 @@ export function Calendar({ selectedDate, onDaySelect }: CalendarProps) {
                 endAccessor="end"
                 style={{ height: "calc(100% - 16px)" }}
                 eventPropGetter={getEventStyle}
+                date={currentDate}
                 messages={{
                     next: "Weiter",
                     previous: "Zurück",
@@ -91,6 +96,7 @@ export function Calendar({ selectedDate, onDaySelect }: CalendarProps) {
                     onDaySelect(selectedSlot.start);
                 }}
                 onView={(newView) => setView(newView)}
+                onNavigate={(date) => setCurrentDate(date)}
                 selectable={true}
             />
         </div>

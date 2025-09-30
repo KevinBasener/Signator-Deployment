@@ -4,6 +4,25 @@ import type React from "react"
 //Please import EnvConfig.ts from lib
 
 import {useEffect, useState} from "react"
+
+// Delete event function that can be called from anywhere
+export async function deleteEvent(eventId: number): Promise<boolean> {
+    try {
+        const url = `${process.env.NEXT_PUBLIC_SERVER_URL}/api/py/deleteEvent/${eventId}`;
+        const response = await fetch(url, {
+            method: "DELETE"
+        });
+
+        if (!response.ok) {
+            throw new Error("Delete failed");
+        }
+
+        return true;
+    } catch (error) {
+        console.error("Error deleting event:", error);
+        throw error;
+    }
+}
 import { Button } from "@/components/ui/button"
 import {
     Dialog,
@@ -18,7 +37,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { format } from "date-fns"
 import { de } from "date-fns/locale"
-import {CalendarIcon, PlusCircle, Upload} from "lucide-react"
+import {CalendarIcon, PlusCircle, Upload, Trash2} from "lucide-react"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { cn } from "@/lib/utils"
@@ -57,7 +76,7 @@ export function BookingDialog({ isOpen, onClose, selectedDate, onDateChange, roo
 
     useEffect(() => {
         console.log(isDatePopoverOpen)
-    }), [isDatePopoverOpen];
+    }, [isDatePopoverOpen]);
 
     const handleSubmit = async () => {
         if (!selectedDate) return;
@@ -75,6 +94,7 @@ export function BookingDialog({ isOpen, onClose, selectedDate, onDateChange, roo
 
         try {
             const url = `${process.env.NEXT_PUBLIC_SERVER_URL}/api/py/addEventWithImages`;
+            console.log("Url: " + url)
 
             const uploadResponse = await fetch(url, {
                 method: "POST",
@@ -101,6 +121,21 @@ export function BookingDialog({ isOpen, onClose, selectedDate, onDateChange, roo
             alert("Fehler beim Buchen des Raumes.");
         } finally {
             setIsLoading(false); // stop loading
+        }
+    };
+
+    const handleDelete = async (eventId: number) => {
+        if (!confirm("Möchten Sie dieses Event wirklich löschen?")) return;
+
+        setIsLoading(true);
+        try {
+            await deleteEvent(eventId);
+            // Refresh the page to show updated events
+            window.location.reload();
+        } catch (error) {
+            alert("Fehler beim Löschen des Events.");
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -169,7 +204,12 @@ export function BookingDialog({ isOpen, onClose, selectedDate, onDateChange, roo
                                             onChange={(e) => handleImageChange(e, index)}
                                         />
                                     </label>
-                                    <span className="mt-1 text-xs sm:text-sm">Raum {index + 1}</span>
+                                    <span className="mt-1 text-xs sm:text-sm">
+                                        {index === 0 && "Sammelgarderobe 1"}
+                                        {index === 1 && "Sammelgarderobe 2"}
+                                        {index === 2 && "Sologarderobe 1"}
+                                        {index === 3 && "Sologarderobe 2"}
+                                    </span>
                                 </div>
                             ))}
                         </div>

@@ -10,22 +10,22 @@ import { BookingDialog, BookingFormData } from "@/components/booking-dialog";
 const initialRooms = [
   {
     number: "1",
-    name: "Konferenzraum A",
+    name: "Sammelgarderobe 1",
     image: "/placeholder.svg?height=200&width=300",
   },
   {
     number: "2",
-    name: "Besprechungsraum B",
+    name: "Sammelgarderobe 2",
     image: "/placeholder.svg?height=200&width=300",
   },
   {
     number: "3",
-    name: "Schulungsraum C",
+    name: "Sologarderobe 1",
     image: "/placeholder.svg?height=200&width=300",
   },
   {
     number: "4",
-    name: "Präsentationsraum D",
+    name: "Sologarderobe 2",
     image: "/placeholder.svg?height=200&width=300",
   },
 ]
