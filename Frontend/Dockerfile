@@ -12,7 +12,7 @@ FROM node:20-alpine AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
-ENV NEXT_PUBLIC_SERVER_URL=$NEXT_PUBLIC_SERVER_URL
+ENV NEXT_PUBLIC_SERVER_URL="http://10.10.1.13:8000"
 
 # Copy standalone output
 COPY --from=builder /app/.next/standalone ./
