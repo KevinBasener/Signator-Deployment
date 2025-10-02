@@ -223,6 +223,65 @@ async def get_web_image_by_date(display_id: str, scheduled_time: date):
 
         return Response(content=record['image_data'], media_type=record['content_type'])
 
+@app.post("/api/py/setDefaultImages")
+async def set_default_images(
+        image_1: Optional[UploadFile] = File(None), image_2: Optional[UploadFile] = File(None),
+        image_3: Optional[UploadFile] = File(None), image_4: Optional[UploadFile] = File(None)
+):
+    """Sets default images for each Inkplate display (stored in default_images table)"""
+    async with DB_POOL.acquire() as conn, conn.transaction():
+        # Create table if it doesn't exist
+        await conn.execute("""
+            CREATE TABLE IF NOT EXISTS default_images (
+                display_id INT PRIMARY KEY,
+                image_data BYTEA NOT NULL,
+                content_type TEXT NOT NULL,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+        """)
+
+        display_mapping = {1: image_1, 2: image_2, 3: image_3, 4: image_4}
+        updated_displays = []
+
+        for display_id, file in display_mapping.items():
+            if file and file.filename:
+                # Process image
+                img = Image.open(io.BytesIO(await file.read())).convert("RGB")
+                img.thumbnail((1200, 825), Image.LANCZOS)
+                background = Image.new('RGB', (1200, 825), (255, 255, 255))
+                paste_x = (1200 - img.width) // 2
+                paste_y = (825 - img.height) // 2
+                background.paste(img, (paste_x, paste_y))
+
+                img_bytes_io = io.BytesIO()
+                background.save(img_bytes_io, format="JPEG", quality=50)
+                processed_image_bytes = img_bytes_io.getvalue()
+
+                # Insert or update default image
+                await conn.execute("""
+                    INSERT INTO default_images (display_id, image_data, content_type, updated_at)
+                    VALUES ($1, $2, $3, CURRENT_TIMESTAMP)
+                    ON CONFLICT (display_id)
+                    DO UPDATE SET image_data = $2, content_type = $3, updated_at = CURRENT_TIMESTAMP;
+                """, display_id, processed_image_bytes, "image/jpeg")
+
+                updated_displays.append(display_id)
+
+        return {"message": "Default images updated successfully", "updated_displays": updated_displays}
+
+@app.get("/api/py/getDefaultImage/{display_id}")
+async def get_default_image(display_id: int):
+    """Fetches the default image for a specific Inkplate display"""
+    async with DB_POOL.acquire() as conn:
+        record = await conn.fetchrow(
+            "SELECT image_data, content_type FROM default_images WHERE display_id = $1;",
+            display_id
+        )
+        if not record or not record['image_data']:
+            raise HTTPException(status_code=404, detail="No default image set for this display")
+
+        return Response(content=record['image_data'], media_type=record['content_type'])
+
 @app.get("/api/py/scheduleLatest/{display_id}")
 async def get_image_for_inkplate(display_id: str):
     """Fetches image data from the database and converts it for the Inkplate device."""
