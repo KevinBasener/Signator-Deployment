@@ -1,0 +1,17 @@
+[Unit]
+Description=My Next.js Frontend Application
+After=network.target
+
+[Service]
+User=pi
+Group=pi
+WorkingDirectory=/home/pi/Signator-Deployment/Frontend
+# Use the full path to npm you found earlier
+ExecStart=/home/pi/.nvm/versions/node/v20.18.0/bin/npm run start
+Restart=always
+RestartSec=10
+Environment=NODE_ENV=production
+Environment=PORT=3000
+
+[Install]
+WantedBy=multi-user.target
