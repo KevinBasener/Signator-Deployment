@@ -7,7 +7,7 @@ User=pi
 Group=pi
 WorkingDirectory=/home/pi/Signator-Deployment/Frontend
 # Use the full path to npm you found earlier
-ExecStart=/home/pi/.nvm/versions/node/v20.18.0/bin/npm run start
+ExecStart=/home/pi/.nvm/versions/node/v22.20.0/bin/npm run start
 Restart=always
 RestartSec=10
 Environment=NODE_ENV=production
