@@ -1,11 +1,13 @@
 import {useState} from "react"
 import {Button} from "@/components/ui/button"
 import Link from "next/link"
-import {Menu, X} from "lucide-react"
+import {Menu, X, ImageIcon} from "lucide-react"
 import {useRouter} from "next/navigation";
+import {DefaultImageDialog} from "./default-image-dialog";
 
 export function Header() {
     const [menuOpen, setMenuOpen] = useState(false)
+    const [defaultImageDialogOpen, setDefaultImageDialogOpen] = useState(false)
     const router = useRouter()
 
     return (
@@ -19,6 +21,16 @@ export function Header() {
             {/* Desktop Navigation (Hidden on Mobile) */}
             <nav className="hidden md:flex">
                 <ul className="flex items-center space-x-4">
+                    <li>
+                        <Button
+                            variant="ghost"
+                            onClick={() => setDefaultImageDialogOpen(true)}
+                            className="flex items-center gap-2"
+                        >
+                            <ImageIcon className="h-4 w-4" />
+                            Standardbilder
+                        </Button>
+                    </li>
                     <li>
                         <Link href="/bug-report" className="hover:underline">
                             Fehler melden
@@ -48,6 +60,19 @@ export function Header() {
                 <div className="absolute top-16 left-0 w-full bg-primary text-primary-foreground shadow-lg md:hidden">
                     <ul className="flex flex-col space-y-2 p-4">
                         <li>
+                            <Button
+                                variant="ghost"
+                                onClick={() => {
+                                    setDefaultImageDialogOpen(true);
+                                    setMenuOpen(false);
+                                }}
+                                className="w-full flex items-center gap-2 justify-start"
+                            >
+                                <ImageIcon className="h-4 w-4" />
+                                Standardbilder
+                            </Button>
+                        </li>
+                        <li>
                             <Link href="/bug-report" className="block p-2 hover:bg-primary-700 rounded">
                                 Fehler melden
                             </Link>
@@ -63,6 +88,11 @@ export function Header() {
                     </ul>
                 </div>
             )}
+
+            <DefaultImageDialog
+                isOpen={defaultImageDialogOpen}
+                onClose={() => setDefaultImageDialogOpen(false)}
+            />
         </header>
     )
 }
