@@ -271,16 +271,42 @@ async def set_default_images(
 
 @app.get("/api/py/getDefaultImage/{display_id}")
 async def get_default_image(display_id: int):
-    """Fetches the default image for a specific Inkplate display"""
+    """
+    Fetches the default image for a display, converts it to 1-bit BMP for the
+    Inkplate, and returns it as a JSON object with a version ID and Base64 data.
+    """
     async with DB_POOL.acquire() as conn:
+        # Fetch the image data and its last update time, which will serve as the version ID
         record = await conn.fetchrow(
-            "SELECT image_data, content_type FROM default_images WHERE display_id = $1;",
+            "SELECT image_data, updated_at FROM default_images WHERE display_id = $1;",
             display_id
         )
         if not record or not record['image_data']:
             raise HTTPException(status_code=404, detail="No default image set for this display")
 
-        return Response(content=record['image_data'], media_type=record['content_type'])
+        image_data_from_db = record['image_data']
+        # Use the timestamp as a unique identifier for the image version
+        image_id = str(record['updated_at'])
+
+        # Convert the stored JPEG into a 1-bit BMP for the Inkplate
+        img = Image.open(io.BytesIO(image_data_from_db))
+        img = ImageOps.invert(img) # Invert colors for e-ink display (black on white)
+        img_1bit = img.convert("1", dither=Image.Dither.FLOYDSTEINBERG)
+        bmp_io = io.BytesIO()
+        img_1bit.save(bmp_io, format="BMP")
+        bmp_bytes = bmp_io.getvalue()
+        img.close()
+
+        # Base64 encode the final BMP image data
+        base64_image_data = base64.b64encode(bmp_bytes).decode('utf-8')
+
+        # Create the JSON response structure expected by the MicroPython client
+        json_response = {
+            "defaultImageId": image_id,
+            "defaultImageData": base64_image_data
+        }
+
+        return json_response
 
 @app.get("/api/py/scheduleLatest/{display_id}")
 async def get_image_for_inkplate(display_id: str):
